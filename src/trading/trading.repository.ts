@@ -1,58 +1,68 @@
 import { Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TradingRepository {
-	constructor(private readonly httpService: HttpService) {}
+	constructor(
+		private readonly configService: ConfigService,
+		private readonly httpService: HttpService
+	) {}
 
 	// /uapi/domestic-stock/v1/trading/order-cash
-	async orderCash(cano: string, acntPrdtCd: string, pdno: string, ordDvsn: string = '01', ordQty: string = '1', ordUnpr: string = '0') {
+	async orderCash(pdno: string, ordQty: string = '1', type: string) {
+		const gubun: string = this.configService.get<string>('env');
+
 		return this.httpService
 			.post(
 				'/order-cash',
 				{
-					CANO: cano,
-					ACNT_PRDT_CD: acntPrdtCd,
+					CANO: this.configService.get<string>('cano'),
+					ACNT_PRDT_CD: this.configService.get<string>('acnt_prdt_cd'),
 					PDNO: pdno,
-					ORD_DVSN: ordDvsn,
+					ORD_DVSN: '01',
 					ORD_QTY: ordQty,
-					ORD_UNPR: ordUnpr,
+					ORD_UNPR: '0',
 				},
-				{ headers: { 'Content-Type': 'application/json; charset=UTF-8', authorization: 'Bearer ', appkey: '', appsecret: '', tr_id: '매수/매도' } }
+				{
+					headers: {
+						'Content-Type': 'application/json; charset=UTF-8',
+						authorization: 'Bearer ',
+						appkey: this.configService.get<string>('appKey'),
+						appsecret: this.configService.get<string>('appSecret'),
+						tr_id: `${gubun}${type == '0' ? 'TTC0802U' : 'TTC0801U'}`,
+					},
+				}
 			)
 			.pipe(map((response) => response.data));
 	}
 
 	// /uapi/domestic-stock/v1/trading/inquire-balance
-	inquireBalance(
-		cano: string,
-		acntPrdtCd: string,
-		afhrFlprYn: string,
-		oflYn: string,
-		inqrDvsn: string,
-		unprDvsn: string,
-		fundSttlIcldYn: string,
-		fncgAmtAutoRdptYn: string,
-		prcsDvsn: string,
-		ctxAreaFk100: string,
-		ctxAreaNk100: string
-	) {
+	inquireBalance() {
+		const gubun: string = this.configService.get<string>('env');
+
 		return this.httpService
 			.get('/inquire-balance', {
-				headers: { 'Content-Type': 'application/json; charset=UTF-8', authorization: 'Bearer ', appkey: '', appsecret: '', tr_id: '주식잔고조회' },
+				headers: {
+					'Content-Type': 'application/json; charset=UTF-8',
+					authorization: 'Bearer ',
+					appkey: this.configService.get<string>('appKey'),
+					appsecret: this.configService.get<string>('appSecret'),
+					tr_id: `${gubun}TTC8434R`,
+				},
 				params: {
-					CANO: cano,
-					ACNT_PRDT_CD: acntPrdtCd,
-					AFHR_FLPR_YN: afhrFlprYn,
-					OFL_YN: oflYn,
-					INQR_DVSN: inqrDvsn,
-					UNPR_DVSN: unprDvsn,
-					FUND_STTL_ICLD_YN: fundSttlIcldYn,
-					FNCG_AMT_AUTO_RDPT_YN: fncgAmtAutoRdptYn,
-					PRCS_DVSN: prcsDvsn,
-					CTX_AREA_FK100: ctxAreaFk100,
-					CTX_AREA_NK100: ctxAreaNk100,
+					CANO: this.configService.get<string>('cano'),
+					ACNT_PRDT_CD: this.configService.get<string>('acnt_prdt_cd'),
+					AFHR_FLPR_YN: 'N',
+					OFL_YN: '',
+					INQR_DVSN: '02',
+					UNPR_DVSN: '01',
+					FUND_STTL_ICLD_YN: 'N',
+					FNCG_AMT_AUTO_RDPT_YN: 'N',
+					PRCS_DVSN: '00',
+					CTX_AREA_FK100: '',
+					CTX_AREA_NK100: '',
 				},
 			})
 			.pipe(map((response) => response.data));
