@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { EtcRepository } from './etc.repository';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ChartRepository } from './chart.repository';
 
 @Module({
 	imports: [
@@ -14,7 +15,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 			inject: [ConfigService],
 		}),
 	],
-	providers: [EtcRepository],
-	exports: [EtcRepository],
+	providers: [EtcRepository, ChartRepository],
+	exports: [EtcRepository, ChartRepository],
 })
 export class StockModule {}
